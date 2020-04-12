@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Corona Data</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+    <script src="https://unpkg.com/papaparse@5.1.1/papaparse.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" />
+    <style>
+        body {
+            background-color: rgb(50, 50, 50);
+            /*background-image: url('./backgound_virus.png');*/
+            background-size: 800px;
+        }
+
+        .chartTitle {
+            text-align: center;
+            font-size: 0.7em !important;
+            margin-bottom: 0;
+        }
+
+        .container {
+            margin-top: 0.5em;
+            /* margin-left: 1rem;
+            margin-right: 1rem; */
+            width: 85%;
+            max-width: 85%;
+        }
+
+        .row {
+            margin-top: 32px;
+            margin-bottom: 32px;
+            margin-left: 0.5em;
+            margin-right: 0.5em;
+        }
+
+        .box {
+            background-color: rgba(50, 50, 50, 1);
+            background-image: url("https://global.unitednations.entermediadb.net/assets/mediadb/services/module/asset/downloads/preset/Libraries/Production+Library/31-01-20-coronavirus-digital-image-cdc1.jpg/image1440x560cropped.jpg");
+            /*background-image: url("https://www.bmas.de/SharedDocs/Bilder/DE/SoMe/corona-virus.jpg?__blob=normal&v=5");
+            background-image: url("https://cdn.pixabay.com/photo/2020/03/14/12/56/corona-4930541_1280.jpg");
+            background-image: url("https://fems-microbiology.org/wp-content/uploads/2020/03/2019-nCoV-CDC-23312_without_background-pubic-domain.png");*/
+            background-size: 1113px;
+            /*background: rgb(0, 0, 0);
+            background: linear-gradient(130deg, rgba(0, 0, 0, 1) 0%, rgba(51, 51, 51, 1) 70%, rgba(102, 102, 102, 1) 100%);*/
+            opacity: 1;
+            color: rgb(255, 255, 255);
+            box-shadow: rgba(67, 90, 111, 0.3) 0px 0px 1px,
+                rgba(67, 90, 111, 0.47) 0px 2px 4px -2px;
+            border-radius: 0.5em 0.5em 0.5em 0.5em;
+            padding: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="twelve columns">
+                <div id="box0" class="box"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="four columns">
+                <div id="box1" class="box">
+                    <div></div>
+                    <canvas width="100" height="80"></canvas>
+                </div>
+            </div>
+            <div class="four columns">
+                <div id="box2" class="box">
+                    <div></div>
+                    <canvas width="100" height="80"></canvas>
+                </div>
+            </div>
+            <div class="four columns">
+                <div id="box3" class="box">
+                    <div></div>
+                    <canvas width="100" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="four columns">
+                <div id="box4" class="box">
+                    <div></div>
+                    <canvas width="100" height="80"></canvas>
+                </div>
+            </div>
+            <div class="four columns">
+                <div id="box5" class="box">
+                    <div></div>
+                    <canvas width="100" height="80"></canvas>
+                </div>
+            </div>
+            <div class="four columns">
+                <div id="box6" class="box">
+                    <div></div>
+                    <canvas width="100" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="four columns">
+                <div id="box7" class="box">
+                    <div></div>
+                    <canvas width="100" height="80"></canvas>
+                </div>
+            </div>
+            <div class="four columns">
+                <div id="box8" class="box">
+                    <div></div>
+                    <canvas width="100" height="80"></canvas>
+                </div>
+            </div>
+            <div class="four columns">
+                <div id="box9" class="box">
+                    <div></div>
+                    <canvas width="100" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="twelve columns">
+                <div id="box10" class="box">
+                    <div></div>
+                    <canvas width="100" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin: auto; width: 85%; display:flex;flex-wrap: wrap;">
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart1" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart2" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart3" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart4" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart5" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart6" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart7" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart8" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart9" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart10" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 100%">
+            <canvas id="myChart11" width="100" height="50"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart12" width="100" height="80"></canvas>
+        </div>
+        <div style="margin: left; width: 50%">
+            <canvas id="myChart13" width="100" height="80"></canvas>
+        </div>
+    </div>
+    <script src="./main.js"></script>
+</body>
+
+</html>
