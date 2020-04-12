@@ -901,8 +901,8 @@ function run(dates, confirmed, deaths, recovered) {
 
     draw(dates.slice(30), [
         {
-            label: "Italy new deaths avg of 3 days",
-            data: movingAvg(country_diff(deaths, "Italy").slice(30), 3),
+            label: "Italy new deaths avg of 7 days",
+            data: movingAvg(country_diff(deaths, "Italy").slice(30), 7),
             color: { r: 0, g: 0, b: 0 }
         }
     ],
