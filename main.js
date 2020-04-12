@@ -446,7 +446,7 @@ function movingAvg(array, count, qualifier) {
     for (var i = 0, len = array.length - count; i <= len; i++) {
         val = avg(array.slice(i, i + count), qualifier);
         if (isNaN(val)) result.push(null);
-        else result.push(val);
+        else result.push(Math.round(val));
     }
 
     return result;
