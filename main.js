@@ -922,135 +922,7 @@ function run(dates, confirmed, deaths, recovered) {
         ctx2
     );
 
-    /*draw(
-        dates,
-        [
-            {
-                label: "US Confirmed",
-                data: country_data(confirmed, "US"), //.concat([92932]),
-                color: { r: 255, g: 165, b: 0 }
-            },
-            //{
-            //    label: "Germany actual",
-            //    data: country_actual2(confirmed, recovered, deaths, "Germany", 2),
-            //    color: { r: 150, g: 50, b: 200 }
-            //},
-            /*{
-                  label: "US recovered",
-                  data: country_data(recovered, "US"),
-                  color: { r: 0, g: 255, b: 0 }
-              },
-            {
-                label: "US deaths",
-                data: country_data(deaths, "US"),
-                color: { r: 255, g: 0, b: 0 }
-            }
-        ],
-        "linear",
-        ctx1
-    );
-    draw(
-        dates,
-        [
-            {
-                label: "Spain Confirmed",
-                data: country_data(confirmed, "Spain"),
-                color: { r: 255, g: 165, b: 0 }
-            },
-            {
-                label: "Spain deaths",
-                data: country_data(deaths, "Spain"),
-                color: { r: 255, g: 0, b: 0 }
-            }
-        ],
-        "linear",
-        ctx3
-    );
-    draw(
-        dates,
-        [
-            {
-                label: "Germany Confirmed",
-                data: country_data(confirmed, "Germany"),
-                color: { r: 255, g: 165, b: 0 }
-            },
-            {
-                label: "Germany deaths",
-                data: country_data(deaths, "Germany"),
-                color: { r: 255, g: 0, b: 0 }
-            }
-        ],
-        "linear",
-        ctx4
-    );
-    draw(
-        dates,
-        [
-            {
-                label: "France Confirmed",
-                data: country_data(confirmed, "France"),
-                color: { r: 255, g: 165, b: 0 }
-            },
-            {
-                label: "France deaths",
-                data: country_data(deaths, "France"),
-                color: { r: 255, g: 0, b: 0 }
-            }
-        ],
-        "linear",
-        ctx5
-    );
-    draw(
-        dates,
-        [
-            {
-                label: "Iran Confirmed",
-                data: country_data(confirmed, "Iran"),
-                color: { r: 255, g: 165, b: 0 }
-            },
-            {
-                label: "Iran deaths",
-                data: country_data(deaths, "Iran"),
-                color: { r: 255, g: 0, b: 0 }
-            }
-        ],
-        "linear",
-        ctx8
-    );
-    draw(
-        dates,
-        [
-            {
-                label: "Switzerland Confirmed",
-                data: country_data(confirmed, "Switzerland"),
-                color: { r: 255, g: 165, b: 0 }
-            },
-            {
-                label: "Switzerland deaths",
-                data: country_data(deaths, "Switzerland"),
-                color: { r: 255, g: 0, b: 0 }
-            }
-        ],
-        "linear",
-        ctx7
-    );
-    draw(
-        dates,
-        [
-            {
-                label: "UK Confirmed",
-                data: country_data(confirmed, "United Kingdom"),
-                color: { r: 255, g: 165, b: 0 }
-            },
-            {
-                label: "UK deaths",
-                data: country_data(deaths, "United Kingdom"),
-                color: { r: 255, g: 0, b: 0 }
-            }
-        ],
-        "linear",
-        ctx6
-    );*/
+
     draw_bar(
         dates.slice(31),
         [
@@ -1105,7 +977,7 @@ function run(dates, confirmed, deaths, recovered) {
 
     day.length = country_data(deaths, "Iran").slice(33).length;
 
-    //Einwohner
+    //Inhabitants
     //US = 332639102, DE = 83019213, IT = 60262701, ESP = 46722980,
     //UK = 66435550, FR = 66993000, CH = 8544527, IR = 81800269
 
