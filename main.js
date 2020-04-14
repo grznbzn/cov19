@@ -899,7 +899,7 @@ function run(dates, confirmed, deaths, recovered) {
         }
     });
 
-    draw(dates.slice(30), [
+    draw_bar(dates.slice(30), [
         {
             label: "Germany new deaths avg of 7 days",
             data: movingAvg(country_diff(deaths, "Germany").slice(30), 7),
