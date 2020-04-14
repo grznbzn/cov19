@@ -906,7 +906,7 @@ function run(dates, confirmed, deaths, recovered) {
             color: { r: 0, g: 0, b: 0 }
         }
     ],
-        "linear",
+        //"linear",
         ctx1);
 
     draw(
