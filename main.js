@@ -901,8 +901,8 @@ function run(dates, confirmed, deaths, recovered) {
 
     draw_bar(dates.slice(30), [
         {
-            label: "Germany new deaths avg of 7 days",
-            data: movingAvg(country_diff(deaths, "Germany").slice(30), 7),
+            label: "Germany new incidents avg of 7 days",
+            data: movingAvg(country_diff(confirmed, "Germany").slice(30), 7),
             color: { r: 0, g: 0, b: 0 }
         }
     ],
@@ -913,8 +913,8 @@ function run(dates, confirmed, deaths, recovered) {
         dates.slice(31),
         [
             {
-                label: "Germany New Deaths",
-                data: country_diff(deaths, "Germany").slice(30),
+                label: "Germany New Incidents",
+                data: country_diff(confirmed, "Germany").slice(30),
                 color: { r: 0, g: 0, b: 255 }
             }
         ],
