@@ -466,7 +466,8 @@ function run(dates, confirmed, deaths, recovered) {
             doubles every <b>${get_current(confirmed, "US", "l").toString()} days</b>`,
             `Deaths: <b>${get_current(deaths, "US").toString()}</b>,
             doubles every <b>${get_current(deaths, "US", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "US") / get_current(confirmed, "US") * 100 * 10) / 10} %</b>`
+            `Mortality rate: <b>${Math.round(get_current(deaths, "US") / get_current(confirmed, "US") * 100 * 10) / 10} %</b>`,
+            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 2] / movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 6] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -513,7 +514,8 @@ function run(dates, confirmed, deaths, recovered) {
             doubles every <b>${get_current(confirmed, "Italy", "l").toString()} days</b>`,
             `Deaths: <b>${get_current(deaths, "Italy").toString()}</b>,
             doubles every <b>${get_current(deaths, "Italy", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Italy") / get_current(confirmed, "Italy") * 100 * 10) / 10} %</b>`
+            `Mortality rate: <b>${Math.round(get_current(deaths, "Italy") / get_current(confirmed, "Italy") * 100 * 10) / 10} %</b>`,
+            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Italy"), 7)[movingAvg(country_diff(confirmed, "Italy"), 7).length - 2] / movingAvg(country_diff(confirmed, "Italy"), 7)[movingAvg(country_diff(confirmed, "Italy"), 7).length - 6] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -560,7 +562,8 @@ function run(dates, confirmed, deaths, recovered) {
             doubles every <b>${get_current(confirmed, "Spain", "l").toString()} days</b>`,
             `Deaths: <b>${get_current(deaths, "Spain").toString()}</b>,
             doubles every <b>${get_current(deaths, "Spain", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Spain") / get_current(confirmed, "Spain") * 100 * 10) / 10} %</b>`
+            `Mortality rate: <b>${Math.round(get_current(deaths, "Spain") / get_current(confirmed, "Spain") * 100 * 10) / 10} %</b>`,
+            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Spain"), 7)[movingAvg(country_diff(confirmed, "Spain"), 7).length - 2] / movingAvg(country_diff(confirmed, "Spain"), 7)[movingAvg(country_diff(confirmed, "Spain"), 7).length - 6] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -655,7 +658,8 @@ function run(dates, confirmed, deaths, recovered) {
             doubles every <b>${get_current(confirmed, "France", "l").toString()} days</b>`,
             `Deaths: <b>${get_current(deaths, "France").toString()}</b>,
             doubles every <b>${get_current(deaths, "France", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "France") / get_current(confirmed, "France") * 100 * 10) / 10} %</b>`
+            `Mortality rate: <b>${Math.round(get_current(deaths, "France") / get_current(confirmed, "France") * 100 * 10) / 10} %</b>`,
+            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "France"), 7)[movingAvg(country_diff(confirmed, "France"), 7).length - 2] / movingAvg(country_diff(confirmed, "France"), 7)[movingAvg(country_diff(confirmed, "France"), 7).length - 6] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -702,7 +706,8 @@ function run(dates, confirmed, deaths, recovered) {
             doubles every <b>${get_current(confirmed, "United Kingdom", "l").toString()} days</b>`,
             `Deaths: <b>${get_current(deaths, "United Kingdom").toString()}</b>,
             doubles every <b>${get_current(deaths, "United Kingdom", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "United Kingdom") / get_current(confirmed, "United Kingdom") * 100 * 10) / 10} %</b>`
+            `Mortality rate: <b>${Math.round(get_current(deaths, "United Kingdom") / get_current(confirmed, "United Kingdom") * 100 * 10) / 10} %</b>`,
+            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "United Kingdom"), 7)[movingAvg(country_diff(confirmed, "United Kingdom"), 7).length - 2] / movingAvg(country_diff(confirmed, "United Kingdom"), 7)[movingAvg(country_diff(confirmed, "United Kingdom"), 7).length - 6] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -750,7 +755,8 @@ function run(dates, confirmed, deaths, recovered) {
             doubles every <b>${get_current(confirmed, "Japan", "l").toString()} days</b>`,
             `Deaths: <b>${get_current(deaths, "Japan").toString()}</b>,
             doubles every <b>${get_current(deaths, "Japan", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Japan") / get_current(confirmed, "Japan") * 100 * 10) / 10} %</b>`
+            `Mortality rate: <b>${Math.round(get_current(deaths, "Japan") / get_current(confirmed, "Japan") * 100 * 10) / 10} %</b>`,
+            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Japan"), 7)[movingAvg(country_diff(confirmed, "Japan"), 7).length - 2] / movingAvg(country_diff(confirmed, "Japan"), 7)[movingAvg(country_diff(confirmed, "Japan"), 7).length - 6] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -798,7 +804,8 @@ function run(dates, confirmed, deaths, recovered) {
             doubles every <b>${get_current(confirmed, "Singapore", "l").toString()} days</b>`,
             `Deaths: <b>${get_current(deaths, "Singapore").toString()}</b>,
             doubles every <b>${get_current(deaths, "Singapore", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Singapore") / get_current(confirmed, "Singapore") * 100 * 10) / 10} %</b>`
+            `Mortality rate: <b>${Math.round(get_current(deaths, "Singapore") / get_current(confirmed, "Singapore") * 100 * 10) / 10} %</b>`,
+            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Singapore"), 7)[movingAvg(country_diff(confirmed, "Singapore"), 7).length - 2] / movingAvg(country_diff(confirmed, "Singapore"), 7)[movingAvg(country_diff(confirmed, "Singapore"), 7).length - 6] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -846,7 +853,8 @@ function run(dates, confirmed, deaths, recovered) {
             doubles every <b>${get_current(confirmed, "Austria", "l").toString()} days</b>`,
             `Deaths: <b>${get_current(deaths, "Austria").toString()}</b>,
             doubles every <b>${get_current(deaths, "Austria", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Austria") / get_current(confirmed, "Austria") * 100 * 10) / 10} %</b>`
+            `Mortality rate: <b>${Math.round(get_current(deaths, "Austria") / get_current(confirmed, "Austria") * 100 * 10) / 10} %</b>`,
+            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Austria"), 7)[movingAvg(country_diff(confirmed, "Austria"), 7).length - 2] / movingAvg(country_diff(confirmed, "Austria"), 7)[movingAvg(country_diff(confirmed, "Austria"), 7).length - 6] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
