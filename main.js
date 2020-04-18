@@ -608,7 +608,7 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "Germany").toString()}</b>,
             doubles every <b>${get_current(deaths, "Germany", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "Germany") / get_current(confirmed, "Germany") * 100 * 10) / 10} %</b>`,
-            `Length diff: <b>${country_diff(confirmed, "Germany").length} </b>`,
+            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Germany"), 7)[movingAvg(country_diff(confirmed, "Germany"), 7).length - 1] / movingAvg(country_diff(confirmed, "Germany"), 7)[movingAvg(country_diff(confirmed, "Germany"), 7).length - 5] * 100 * 10) / 10} </b>`,
             `Length avgdiff: <b>${movingAvg(country_diff(confirmed, "Germany"), 7).length} </b>`
         ],
         cb: context => {
