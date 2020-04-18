@@ -903,13 +903,23 @@ function run(dates, confirmed, deaths, recovered) {
         {
             label: "Germany new incidents avg of 7 days",
             data: movingAvg(country_diff(confirmed, "Germany").slice(30), 7),
-            color: { r: 0, g: 0, b: 0 }
+            color: { r: 0, g: 100, b: 100 }
         }
     ],
         //"linear",
         ctx1);
 
-    draw(
+    draw_bar(dates.slice(30), [
+        {
+            label: "Germany new deaths avg of 7 days",
+            data: movingAvg(country_diff(deaths, "Germany").slice(30), 7),
+            color: { r: 255, g: 0, b: 0 }
+        }
+    ],
+        //"linear",
+        ctx1);
+
+    /*draw(
         dates.slice(31),
         [
             {
@@ -920,7 +930,7 @@ function run(dates, confirmed, deaths, recovered) {
         ],
         "linear",
         ctx2
-    );
+    );*/
 
 
     draw_bar(
