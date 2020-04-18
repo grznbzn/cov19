@@ -608,8 +608,8 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "Germany").toString()}</b>,
             doubles every <b>${get_current(deaths, "Germany", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "Germany") / get_current(confirmed, "Germany") * 100 * 10) / 10} %</b>`,
-            `Length diff: <b>${country_diff(confirmed, "Germany").slice(30).length} </b>`,
-            `Length avgdiff: <b>${movingAvg(country_diff(confirmed, "Germany").slice(30), 7).length} </b>`
+            `Length diff: <b>${country_diff(confirmed, "Germany").length} </b>`,
+            `Length avgdiff: <b>${movingAvg(country_diff(confirmed, "Germany"), 7).length} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -901,10 +901,10 @@ function run(dates, confirmed, deaths, recovered) {
         }
     });
 
-    draw_bar(dates.slice(30), [
+    draw_bar(dates, [
         {
             label: "Germany new incidents avg of 7 days",
-            data: movingAvg(country_diff(confirmed, "Germany").slice(30), 7),
+            data: movingAvg(country_diff(confirmed, "Germany"), 7),
             color: { r: 0, g: 100, b: 100 }
         }
     ],
@@ -921,10 +921,10 @@ function run(dates, confirmed, deaths, recovered) {
         //"linear",
         ctx2);*/
 
-    draw_bar(dates.slice(30), [
+    draw_bar(dates, [
         {
             label: "Germany new incidents",
-            data: country_diff(deaths, "Germany").slice(30),
+            data: country_diff(deaths, "Germany"),
             color: { r: 255, g: 0, b: 0 }
         }
     ],
