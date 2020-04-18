@@ -917,7 +917,7 @@ function run(dates, confirmed, deaths, recovered) {
         }
     ],
         //"linear",
-        ctx1);
+        ctx2);
 
     /*draw(
         dates.slice(31),
