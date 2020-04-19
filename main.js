@@ -30,7 +30,7 @@ function setCBox({ boxId, title, elements, cb }) {
     <ul style="list-style-type:none;">
         ${elements.map(e => `<li>${e}</li>`).reduce((acc, curr) => acc + curr, "")}
     </ul>
-    <p class="chartTitle">Doubling time: <span style="color: rgb(255, 165, 0);">New infections</span> & <span style="color: rgb(255, 0, 0);">deaths</span></p>
+    <!--<p class="chartTitle">Doubling time: <span style="color: rgb(255, 165, 0);">New infections</span> & <span style="color: rgb(255, 0, 0);">deaths</span></p>-->
   `;
 
     cb(box.children[1].getContext("2d"));
@@ -189,8 +189,8 @@ function get_current(data, country, doubling) {
 
 function country_diff(data, country) {
     let con = country_data(data, country);
-    let conFixed = [0].concat(con);
-    return conFixed.map((e, i) => -e + conFixed[i + 1]).slice(1);
+    let conSliced = con.slice(0, -1);
+    return conSliced.map((e, i) => con[i + 1] - e);
     //return con.map((e, i) => e - (rec[i] + dea[i]));
 }
 
@@ -287,6 +287,65 @@ function boxDraw(dates, graphs, ytype, ctx) {
                 }
             ]
             //drawTime: 'beforeDatasetsDraw'
+        }
+    });
+}
+
+function boxBarDraw(dates, graphs, yid, ctx) {
+    graphs.sort((a, b) => b.data[b.data.length - 1] - a.data[a.data.length - 1]);
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: dates,
+            datasets: graphs.map((g, idx) => {
+                return {
+                    label: g.label,
+                    data: g.data,
+                    borderColor: `rgba(${g.color.r},${g.color.g},${g.color.b},1)`,
+                    backgroundColor: `rgba(${g.color.r},${g.color.g},${g.color.b},1)`,
+                    pointHoverBackgroundColor: "rgba(255, 0, 0, 1)",
+                    pointRadius: 0,
+                    pointHoverRadius: 7,
+                    fill: idx === graphs.length - 1 ? true : "+1",
+                    value: true,
+                    yAxisID: yid[idx]
+                };
+            })
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "left",
+                    id: yid[0],
+                }, {
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "right",
+                    id: yid[1],
+                    gridLines: {
+                        drawOnChartArea: false
+                    }
+                }]
+            },
+            plugins: {
+                filler: {
+                    propagate: false
+                }
+            },
+            legend: {
+                display: true,
+                labels: {
+                    boxWidth: 3
+                    //fontColor: 'rgb(255, 99, 132)'
+                }
+            },
+            title: {
+                display: true,
+                text: 'New daily incidents, moving average over 1 week:'
+            },
         }
     });
 }
@@ -458,7 +517,7 @@ function run(dates, confirmed, deaths, recovered) {
         boxId: "box0",
         title: "Current status as of ".concat(dates[dates.length - 1]),
     });
-    setCBox({
+    /*setCBox({
         boxId: "box1",
         title: "United States",
         elements: [
@@ -467,7 +526,7 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "US").toString()}</b>,
             doubles every <b>${get_current(deaths, "US", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "US") / get_current(confirmed, "US") * 100 * 10) / 10} %</b>`,
-            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 2] / movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 6] * 10) / 10} </b>`
+            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 1] / movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 5] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -505,7 +564,49 @@ function run(dates, confirmed, deaths, recovered) {
                 context
             );
         }
+    });*/
+
+
+    setCBox({
+        boxId: "box1",
+        title: "United States",
+        elements: [
+            `Infections: <b>${get_current(confirmed, "US").toString()}</b>,
+            doubles every <b>${get_current(confirmed, "US", "l").toString()} days</b>`,
+            `Deaths: <b>${get_current(deaths, "US").toString()}</b>,
+            doubles every <b>${get_current(deaths, "US", "l").toString()} days</b>`,
+            `Mortality rate: <b>${Math.round(get_current(deaths, "US") / get_current(confirmed, "US") * 100 * 10) / 10} %</b>`,
+            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 1] / movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 5] * 10) / 10} </b>`
+        ],
+        cb: context => {
+            const cd = country_data_with_options({
+                data: confirmed,
+                country: "US",
+                min: 100,
+                doubling_rate: "l"
+            });
+            const cdiff = movingAvg(country_diff(confirmed, "US"), 7);
+
+            boxBarDraw(
+                day.slice(0, cd.length),
+                [
+                    {
+                        label: "Infections",
+                        data: movingAvg(country_diff(confirmed, "US"), 7).slice(cdiff.length - cd.length),
+                        color: { r: 255, g: 165, b: 0 }
+                    },
+                    {
+                        label: "Deaths",
+                        data: movingAvg(country_diff(deaths, "US"), 7).slice(cdiff.length - cd.length),
+                        color: { r: 255, g: 0, b: 0 }
+                    }
+                ],
+                ["y1", "y2"],
+                context
+            );
+        }
     });
+
     setCBox({
         boxId: "box2",
         title: "Italy",
@@ -515,7 +616,7 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "Italy").toString()}</b>,
             doubles every <b>${get_current(deaths, "Italy", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "Italy") / get_current(confirmed, "Italy") * 100 * 10) / 10} %</b>`,
-            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Italy"), 7)[movingAvg(country_diff(confirmed, "Italy"), 7).length - 2] / movingAvg(country_diff(confirmed, "Italy"), 7)[movingAvg(country_diff(confirmed, "Italy"), 7).length - 6] * 10) / 10} </b>`
+            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Italy"), 7)[movingAvg(country_diff(confirmed, "Italy"), 7).length - 1] / movingAvg(country_diff(confirmed, "Italy"), 7)[movingAvg(country_diff(confirmed, "Italy"), 7).length - 5] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -525,31 +626,23 @@ function run(dates, confirmed, deaths, recovered) {
                 doubling_rate: "l"
             });
 
-            boxDraw(
+            const cdiff = movingAvg(country_diff(confirmed, "Italy"), 7);
+
+            boxBarDraw(
                 day.slice(0, cd.length),
                 [
                     {
-                        label: "Infections doubling time",
-                        data: country_data_with_options({
-                            data: confirmed,
-                            country: "Italy",
-                            min: 100,
-                            doubling_rate: "l"
-                        }),
+                        label: "Infections",
+                        data: movingAvg(country_diff(confirmed, "Italy"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 165, b: 0 }
                     },
                     {
-                        label: "Deaths doubling time",
-                        data: country_data_with_options({
-                            data: deaths,
-                            country: "Italy",
-                            min: 10,
-                            doubling_rate: "l"
-                        }),
+                        label: "Deaths",
+                        data: movingAvg(country_diff(deaths, "Italy"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 0, b: 0 }
                     }
                 ],
-                "linear",
+                ["y1", "y2"],
                 context
             );
         }
@@ -563,7 +656,7 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "Spain").toString()}</b>,
             doubles every <b>${get_current(deaths, "Spain", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "Spain") / get_current(confirmed, "Spain") * 100 * 10) / 10} %</b>`,
-            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Spain"), 7)[movingAvg(country_diff(confirmed, "Spain"), 7).length - 2] / movingAvg(country_diff(confirmed, "Spain"), 7)[movingAvg(country_diff(confirmed, "Spain"), 7).length - 6] * 10) / 10} </b>`
+            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Spain"), 7)[movingAvg(country_diff(confirmed, "Spain"), 7).length - 1] / movingAvg(country_diff(confirmed, "Spain"), 7)[movingAvg(country_diff(confirmed, "Spain"), 7).length - 5] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -573,31 +666,23 @@ function run(dates, confirmed, deaths, recovered) {
                 doubling_rate: "l"
             });
 
-            boxDraw(
+            const cdiff = movingAvg(country_diff(confirmed, "Spain"), 7);
+
+            boxBarDraw(
                 day.slice(0, cd.length),
                 [
                     {
-                        label: "Infections doubling time",
-                        data: country_data_with_options({
-                            data: confirmed,
-                            country: "Spain",
-                            min: 100,
-                            doubling_rate: "l"
-                        }),
+                        label: "Infections",
+                        data: movingAvg(country_diff(confirmed, "Spain"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 165, b: 0 }
                     },
                     {
-                        label: "Deaths doubling time",
-                        data: country_data_with_options({
-                            data: deaths,
-                            country: "Spain",
-                            min: 10,
-                            doubling_rate: "l"
-                        }),
+                        label: "Deaths",
+                        data: movingAvg(country_diff(deaths, "Spain"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 0, b: 0 }
                     }
                 ],
-                "linear",
+                ["y1", "y2"],
                 context
             );
         }
@@ -611,7 +696,7 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "Germany").toString()}</b>,
             doubles every <b>${get_current(deaths, "Germany", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "Germany") / get_current(confirmed, "Germany") * 100 * 10) / 10} %</b>`,
-            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Germany"), 7)[movingAvg(country_diff(confirmed, "Germany"), 7).length - 2] / movingAvg(country_diff(confirmed, "Germany"), 7)[movingAvg(country_diff(confirmed, "Germany"), 7).length - 6] * 10) / 10} </b>`
+            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Germany"), 7)[movingAvg(country_diff(confirmed, "Germany"), 7).length - 1] / movingAvg(country_diff(confirmed, "Germany"), 7)[movingAvg(country_diff(confirmed, "Germany"), 7).length - 5] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -621,31 +706,23 @@ function run(dates, confirmed, deaths, recovered) {
                 doubling_rate: "l"
             });
 
-            boxDraw(
+            const cdiff = movingAvg(country_diff(confirmed, "Germany"), 7);
+
+            boxBarDraw(
                 day.slice(0, cd.length),
                 [
                     {
-                        label: "Infections doubling time",
-                        data: country_data_with_options({
-                            data: confirmed,
-                            country: "Germany",
-                            min: 100,
-                            doubling_rate: "l"
-                        }),
+                        label: "Infections",
+                        data: movingAvg(country_diff(confirmed, "Germany"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 165, b: 0 }
                     },
                     {
-                        label: "Deaths doubling time",
-                        data: country_data_with_options({
-                            data: deaths,
-                            country: "Germany",
-                            min: 10,
-                            doubling_rate: "l"
-                        }),
+                        label: "Deaths",
+                        data: movingAvg(country_diff(deaths, "Germany"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 0, b: 0 }
                     }
                 ],
-                "linear",
+                ["y1", "y2"],
                 context
             );
         }
@@ -659,7 +736,7 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "France").toString()}</b>,
             doubles every <b>${get_current(deaths, "France", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "France") / get_current(confirmed, "France") * 100 * 10) / 10} %</b>`,
-            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "France"), 7)[movingAvg(country_diff(confirmed, "France"), 7).length - 2] / movingAvg(country_diff(confirmed, "France"), 7)[movingAvg(country_diff(confirmed, "France"), 7).length - 6] * 10) / 10} </b>`
+            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "France"), 7)[movingAvg(country_diff(confirmed, "France"), 7).length - 1] / movingAvg(country_diff(confirmed, "France"), 7)[movingAvg(country_diff(confirmed, "France"), 7).length - 5] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -669,31 +746,23 @@ function run(dates, confirmed, deaths, recovered) {
                 doubling_rate: "l"
             });
 
-            boxDraw(
+            const cdiff = movingAvg(country_diff(confirmed, "France"), 7);
+
+            boxBarDraw(
                 day.slice(0, cd.length),
                 [
                     {
-                        label: "Infections doubling time",
-                        data: country_data_with_options({
-                            data: confirmed,
-                            country: "France",
-                            min: 100,
-                            doubling_rate: "l"
-                        }),
+                        label: "Infections",
+                        data: movingAvg(country_diff(confirmed, "France"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 165, b: 0 }
                     },
                     {
-                        label: "Deaths doubling time",
-                        data: country_data_with_options({
-                            data: deaths,
-                            country: "France",
-                            min: 10,
-                            doubling_rate: "l"
-                        }),
+                        label: "Deaths",
+                        data: movingAvg(country_diff(deaths, "France"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 0, b: 0 }
                     }
                 ],
-                "linear",
+                ["y1", "y2"],
                 context
             );
         }
@@ -707,7 +776,7 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "United Kingdom").toString()}</b>,
             doubles every <b>${get_current(deaths, "United Kingdom", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "United Kingdom") / get_current(confirmed, "United Kingdom") * 100 * 10) / 10} %</b>`,
-            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "United Kingdom"), 7)[movingAvg(country_diff(confirmed, "United Kingdom"), 7).length - 2] / movingAvg(country_diff(confirmed, "United Kingdom"), 7)[movingAvg(country_diff(confirmed, "United Kingdom"), 7).length - 6] * 10) / 10} </b>`
+            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "United Kingdom"), 7)[movingAvg(country_diff(confirmed, "United Kingdom"), 7).length - 1] / movingAvg(country_diff(confirmed, "United Kingdom"), 7)[movingAvg(country_diff(confirmed, "United Kingdom"), 7).length - 5] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -717,31 +786,23 @@ function run(dates, confirmed, deaths, recovered) {
                 doubling_rate: "l"
             });
 
-            boxDraw(
+            const cdiff = movingAvg(country_diff(confirmed, "United Kingdom"), 7);
+
+            boxBarDraw(
                 day.slice(0, cd.length),
                 [
                     {
-                        label: "Infections doubling time",
-                        data: country_data_with_options({
-                            data: confirmed,
-                            country: "United Kingdom",
-                            min: 100,
-                            doubling_rate: "l"
-                        }),
+                        label: "Infections",
+                        data: movingAvg(country_diff(confirmed, "United Kingdom"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 165, b: 0 }
                     },
                     {
-                        label: "Deaths doubling time",
-                        data: country_data_with_options({
-                            data: deaths,
-                            country: "United Kingdom",
-                            min: 10,
-                            doubling_rate: "l"
-                        }),
+                        label: "Deaths",
+                        data: movingAvg(country_diff(deaths, "United Kingdom"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 0, b: 0 }
                     }
                 ],
-                "linear",
+                ["y1", "y2"],
                 context
             );
         }
@@ -756,7 +817,7 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "Japan").toString()}</b>,
             doubles every <b>${get_current(deaths, "Japan", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "Japan") / get_current(confirmed, "Japan") * 100 * 10) / 10} %</b>`,
-            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Japan"), 7)[movingAvg(country_diff(confirmed, "Japan"), 7).length - 2] / movingAvg(country_diff(confirmed, "Japan"), 7)[movingAvg(country_diff(confirmed, "Japan"), 7).length - 6] * 10) / 10} </b>`
+            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Japan"), 7)[movingAvg(country_diff(confirmed, "Japan"), 7).length - 1] / movingAvg(country_diff(confirmed, "Japan"), 7)[movingAvg(country_diff(confirmed, "Japan"), 7).length - 5] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -766,31 +827,23 @@ function run(dates, confirmed, deaths, recovered) {
                 doubling_rate: "l"
             });
 
-            boxDraw(
+            const cdiff = movingAvg(country_diff(confirmed, "Japan"), 7);
+
+            boxBarDraw(
                 day.slice(0, cd.length),
                 [
                     {
-                        label: "Infections doubling time",
-                        data: country_data_with_options({
-                            data: confirmed,
-                            country: "Japan",
-                            min: 100,
-                            doubling_rate: "l"
-                        }),
+                        label: "Infections",
+                        data: movingAvg(country_diff(confirmed, "Japan"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 165, b: 0 }
                     },
                     {
-                        label: "Deaths doubling time",
-                        data: country_data_with_options({
-                            data: deaths,
-                            country: "Japan",
-                            min: 10,
-                            doubling_rate: "l"
-                        }),
+                        label: "Deaths",
+                        data: movingAvg(country_diff(deaths, "Japan"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 0, b: 0 }
                     }
                 ],
-                "linear",
+                ["y1", "y2"],
                 context
             );
         }
@@ -805,7 +858,7 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "Singapore").toString()}</b>,
             doubles every <b>${get_current(deaths, "Singapore", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "Singapore") / get_current(confirmed, "Singapore") * 100 * 10) / 10} %</b>`,
-            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Singapore"), 7)[movingAvg(country_diff(confirmed, "Singapore"), 7).length - 2] / movingAvg(country_diff(confirmed, "Singapore"), 7)[movingAvg(country_diff(confirmed, "Singapore"), 7).length - 6] * 10) / 10} </b>`
+            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Singapore"), 7)[movingAvg(country_diff(confirmed, "Singapore"), 7).length - 1] / movingAvg(country_diff(confirmed, "Singapore"), 7)[movingAvg(country_diff(confirmed, "Singapore"), 7).length - 5] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -815,31 +868,23 @@ function run(dates, confirmed, deaths, recovered) {
                 doubling_rate: "l"
             });
 
-            boxDraw(
+            const cdiff = movingAvg(country_diff(confirmed, "Singapore"), 7);
+
+            boxBarDraw(
                 day.slice(0, cd.length),
                 [
                     {
-                        label: "Infections doubling time",
-                        data: country_data_with_options({
-                            data: confirmed,
-                            country: "Singapore",
-                            min: 100,
-                            doubling_rate: "l"
-                        }),
+                        label: "Infections",
+                        data: movingAvg(country_diff(confirmed, "Singapore"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 165, b: 0 }
                     },
                     {
-                        label: "Deaths doubling time",
-                        data: country_data_with_options({
-                            data: deaths,
-                            country: "Singapore",
-                            min: 1,
-                            doubling_rate: "l"
-                        }),
+                        label: "Deaths",
+                        data: country_diff(deaths, "Singapore").slice(cdiff.length - cd.length),
                         color: { r: 255, g: 0, b: 0 }
                     }
                 ],
-                "linear",
+                ["y1", "y2"],
                 context
             );
         }
@@ -854,7 +899,7 @@ function run(dates, confirmed, deaths, recovered) {
             `Deaths: <b>${get_current(deaths, "Austria").toString()}</b>,
             doubles every <b>${get_current(deaths, "Austria", "l").toString()} days</b>`,
             `Mortality rate: <b>${Math.round(get_current(deaths, "Austria") / get_current(confirmed, "Austria") * 100 * 10) / 10} %</b>`,
-            `Reproduction rate R: <b>${Math.round(movingAvg(country_diff(confirmed, "Austria"), 7)[movingAvg(country_diff(confirmed, "Austria"), 7).length - 2] / movingAvg(country_diff(confirmed, "Austria"), 7)[movingAvg(country_diff(confirmed, "Austria"), 7).length - 6] * 10) / 10} </b>`
+            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Austria"), 7)[movingAvg(country_diff(confirmed, "Austria"), 7).length - 1] / movingAvg(country_diff(confirmed, "Austria"), 7)[movingAvg(country_diff(confirmed, "Austria"), 7).length - 5] * 10) / 10} </b>`
         ],
         cb: context => {
             const cd = country_data_with_options({
@@ -864,31 +909,23 @@ function run(dates, confirmed, deaths, recovered) {
                 doubling_rate: "l"
             });
 
-            boxDraw(
+            const cdiff = movingAvg(country_diff(confirmed, "Austria"), 7);
+
+            boxBarDraw(
                 day.slice(0, cd.length),
                 [
                     {
-                        label: "Infections doubling time",
-                        data: country_data_with_options({
-                            data: confirmed,
-                            country: "Austria",
-                            min: 100,
-                            doubling_rate: "l"
-                        }),
+                        label: "Infections",
+                        data: movingAvg(country_diff(confirmed, "Austria"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 165, b: 0 }
                     },
                     {
-                        label: "Deaths doubling time",
-                        data: country_data_with_options({
-                            data: deaths,
-                            country: "Austria",
-                            min: 10,
-                            doubling_rate: "l"
-                        }),
+                        label: "Deaths",
+                        data: movingAvg(country_diff(deaths, "Austria"), 7).slice(cdiff.length - cd.length),
                         color: { r: 255, g: 0, b: 0 }
                     }
                 ],
-                "linear",
+                ["y1", "y2"],
                 context
             );
         }
