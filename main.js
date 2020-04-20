@@ -302,7 +302,7 @@ function boxBarDraw(dates, graphs, yid, ctx) {
                 return {
                     label: g.label,
                     data: g.data,
-                    borderColor: `rgba(${g.color.r},${g.color.g},${g.color.b},1)`,
+                    //borderColor: `rgba(${g.color.r},${g.color.g},${g.color.b},1)`,
                     backgroundColor: `rgba(${g.color.r},${g.color.g},${g.color.b},1)`,
                     pointHoverBackgroundColor: "rgba(255, 0, 0, 1)",
                     pointRadius: 0,
@@ -320,13 +320,18 @@ function boxBarDraw(dates, graphs, yid, ctx) {
                     display: true,
                     position: "left",
                     id: yid[0],
+                    ticks: {
+                        beginAtZero: true,
+                        fontColor: 'rgb(255, 165, 0)'
+                    }
                 }, {
                     type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
                     display: true,
                     position: "right",
                     id: yid[1],
-                    gridLines: {
-                        drawOnChartArea: false
+                    ticks: {
+                        beginAtZero: true,
+                        fontColor: 'rgb(255, 0, 0)'
                     }
                 }]
             },
@@ -344,6 +349,7 @@ function boxBarDraw(dates, graphs, yid, ctx) {
             },
             title: {
                 display: true,
+                fontColor: 'rgb(150, 150, 150)',
                 text: 'New daily incidents, moving average over 1 week:'
             },
         }
