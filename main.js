@@ -22,9 +22,17 @@ function setBox1({ boxId, title, elements, canvasId }) {
   `;
 }
 
-function setCBox({ boxId, title, elements, cb }) {
+function setCBox({ boxId, title, dates, data1, data2, country }) {
     const box = document.getElementById(boxId);
-
+    const elements = [
+        `Infections: <b>${get_current(data1, country).toString()}</b>,
+        doubles every <b>${get_current(data1, country, "l").toString()} days</b>`,
+        `Deaths: <b>${get_current(data2, country).toString()}</b>,
+        doubles every <b>${get_current(data2, country, "l").toString()} days</b>`,
+        `Mortality rate: <b>${Math.round(get_current(data2, country) / get_current(data1, country) * 100 * 10) / 10} %</b>`,
+        //`Reproduction Rate: <b>${Math.round(movingAvg(country_diff(data1, country), 7)[movingAvg(country_diff(data1, country), 7).length - 1] / movingAvg(country_diff(data1, country), 7)[movingAvg(country_diff(data1, country), 7).length - 5] * 100) / 100} </b>`,
+        `Reproduction Rate: <b>${calcR(data1, country, 7, 4)[calcR(data1, country, 7, 4).length - 1]} </b>`
+    ];
     box.children[0].innerHTML = `
     <h5>${title}</h5>
     <ul style="list-style-type:none;">
@@ -32,6 +40,36 @@ function setCBox({ boxId, title, elements, cb }) {
     </ul>
     <!--<p class="chartTitle">Doubling time: <span style="color: rgb(255, 165, 0);">New infections</span> & <span style="color: rgb(255, 0, 0);">deaths</span></p>-->
   `;
+
+    const cb = context => {
+        const cd = country_data_with_options({
+            data: data1,
+            country,
+            min: 100,
+            doubling_rate: "l"
+        });
+
+        const cdiff = movingAvg(country_diff(data1, country), 7);
+
+        boxBarDraw(
+            //day.slice(0, cd.length),
+            dates.slice(cdiff.length - cd.length + 1),
+            [
+                {
+                    label: "Infections",
+                    data: movingAvg(country_diff(data1, country), 7).slice(cdiff.length - cd.length),
+                    color: { r: 255, g: 165, b: 0 }
+                },
+                {
+                    label: "Deaths",
+                    data: movingAvg(country_diff(data2, country), 7).slice(cdiff.length - cd.length),
+                    color: { r: 255, g: 0, b: 0 }
+                }
+            ],
+            ["y1", "y2"],
+            context
+        );
+    }
 
     cb(box.children[1].getContext("2d"));
 }
@@ -73,6 +111,34 @@ const day = ["day 1", "day 2", "day 3", "day 4", "day 5", "day 6", "day 7", "day
     "day 53", "day 54", "day 55", "day 56", "day 57", "day 58", "day 59", "day 60", "day 61", "day 62", "day 63", "day 64", "day 65",
     "day 66", "day 67", "day 68", "day 69", "day 70", "day 71", "day 72", "day 73", "day 74", "day 75", "day 76", "day 77", "day 78",
     "day 79", "day 80", "day 81", "day 82", "day 83", "day 84", "day 85", "day 86", "day 87", "day 88", "day 89", "day 90", "day 91"];
+const countries = [
+    "US",
+    "Spain",
+    "Italy",
+    "France",
+    "Germany",
+    "United Kingdom",
+    "Turkey",
+    "Iran",
+    "China",
+    "Russia",
+    "Brazil",
+    "Canada",
+    "Belgium",
+    "Netherlands",
+    "Switzerland",
+    "India",
+    "Portugal",
+    "Ecuador",
+    "Peru",
+    "Ireland",
+    "Sweden",
+    "Saudi Arabia",
+    "Austria",
+    "Israel",
+    "Japan",
+    "Israel",
+    "Singapore"];
 
 Papa.parse(URL_CONFIRMED, {
     download: true,
@@ -190,8 +256,42 @@ function get_current(data, country, doubling) {
 function country_diff(data, country) {
     let con = country_data(data, country);
     let conSliced = con.slice(0, -1);
-    return conSliced.map((e, i) => con[i + 1] - e);
-    //return con.map((e, i) => e - (rec[i] + dea[i]));
+    res = conSliced.map((e, i) => con[i + 1] - e);
+    nres = res.unshift(0);//Eine "0" an den Anfang des Arrays hängen
+    //console.log("cdiff: " + res)
+    return res
+}
+
+function calcR1(data, country, avgperiod) {
+    let con = movingAvg(country_diff(data, country), avgperiod)
+    //country_data(data, country);
+    let conSliced = con.slice(0, -4);
+    return conSliced.map((e, i) => Math.round(con[i + 4] / e * 100) / 100);
+}
+
+function arrSum(arr) {
+    return arr.reduce(function (a, b) {
+        return a + b
+    }, 0);
+}
+
+function calcR(data, country, avgperiod, period) {
+    let con = movingAvg(country_diff(data, country), avgperiod);
+    console.log("Length of data: " + data.length)
+    var sum1 = 0;
+    var sum2 = 0;
+    let res = [];
+
+    for (var i = 2 * period - 1; i < con.length; i++) {
+        sum1 = arrSum(con.slice(i - 2 * period + 1, i - period));
+        sum2 = arrSum(con.slice(i - period + 1, i));
+        res.push(Math.round(sum2 / sum1 * 100) / 100);
+    };
+
+    for (var i = 0; i < 2 * period - 1; i++)
+        res.unshift(0);
+    console.log("Length of calcR: " + res.length)
+    return res;
 }
 
 function country_actual1(confirmed, recovered, deaths, country) {
@@ -286,7 +386,6 @@ function boxDraw(dates, graphs, ytype, ctx) {
                     }
                 }
             ]
-            //drawTime: 'beforeDatasetsDraw'
         }
     });
 }
@@ -316,7 +415,7 @@ function boxBarDraw(dates, graphs, yid, ctx) {
         options: {
             scales: {
                 yAxes: [{
-                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    type: "linear",
                     display: true,
                     position: "left",
                     id: yid[0],
@@ -325,7 +424,7 @@ function boxBarDraw(dates, graphs, yid, ctx) {
                         fontColor: 'rgb(255, 165, 0)'
                     }
                 }, {
-                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    type: "linear",
                     display: true,
                     position: "right",
                     id: yid[1],
@@ -344,7 +443,6 @@ function boxBarDraw(dates, graphs, yid, ctx) {
                 display: true,
                 labels: {
                     boxWidth: 3
-                    //fontColor: 'rgb(255, 99, 132)'
                 }
             },
             title: {
@@ -431,7 +529,6 @@ function draw(dates, graphs, ytype, ctx) {
                     }
                 }
             ]
-            //drawTime: 'beforeDatasetsDraw'
         }
     });
 }
@@ -523,422 +620,248 @@ function run(dates, confirmed, deaths, recovered) {
         boxId: "box0",
         title: "Current status as of ".concat(dates[dates.length - 1]),
     });
-    /*setCBox({
-        boxId: "box1",
-        title: "United States",
-        elements: [
-            `Infections: <b>${get_current(confirmed, "US").toString()}</b>,
-            doubles every <b>${get_current(confirmed, "US", "l").toString()} days</b>`,
-            `Deaths: <b>${get_current(deaths, "US").toString()}</b>,
-            doubles every <b>${get_current(deaths, "US", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "US") / get_current(confirmed, "US") * 100 * 10) / 10} %</b>`,
-            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 1] / movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 5] * 10) / 10} </b>`
-        ],
-        cb: context => {
-            const cd = country_data_with_options({
-                data: confirmed,
-                country: "US",
-                min: 100,
-                doubling_rate: "l"
-            });
-
-            boxDraw(
-                day.slice(0, cd.length),
-                [
-                    {
-                        label: "Infections doubling time",
-                        data: country_data_with_options({
-                            data: confirmed,
-                            country: "US",
-                            min: 100,
-                            doubling_rate: "l"
-                        }),
-                        color: { r: 255, g: 165, b: 0 }
-                    },
-                    {
-                        label: "Deaths doubling time",
-                        data: country_data_with_options({
-                            data: deaths,
-                            country: "US",
-                            min: 10,
-                            doubling_rate: "l"
-                        }),
-                        color: { r: 255, g: 0, b: 0 }
-                    }
-                ],
-                "linear",
-                context
-            );
-        }
-    });*/
-
 
     setCBox({
         boxId: "box1",
-        title: "United States",
-        elements: [
-            `Infections: <b>${get_current(confirmed, "US").toString()}</b>,
-            doubles every <b>${get_current(confirmed, "US", "l").toString()} days</b>`,
-            `Deaths: <b>${get_current(deaths, "US").toString()}</b>,
-            doubles every <b>${get_current(deaths, "US", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "US") / get_current(confirmed, "US") * 100 * 10) / 10} %</b>`,
-            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 1] / movingAvg(country_diff(confirmed, "US"), 7)[movingAvg(country_diff(confirmed, "US"), 7).length - 5] * 10) / 10} </b>`
-        ],
-        cb: context => {
-            const cd = country_data_with_options({
-                data: confirmed,
-                country: "US",
-                min: 100,
-                doubling_rate: "l"
-            });
-            const cdiff = movingAvg(country_diff(confirmed, "US"), 7);
-
-            boxBarDraw(
-                day.slice(0, cd.length),
-                [
-                    {
-                        label: "Infections",
-                        data: movingAvg(country_diff(confirmed, "US"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 165, b: 0 }
-                    },
-                    {
-                        label: "Deaths",
-                        data: movingAvg(country_diff(deaths, "US"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 0, b: 0 }
-                    }
-                ],
-                ["y1", "y2"],
-                context
-            );
-        }
+        title: countries[0],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[0]
     });
 
     setCBox({
         boxId: "box2",
-        title: "Italy",
-        elements: [
-            `Infections: <b>${get_current(confirmed, "Italy").toString()}</b>,
-            doubles every <b>${get_current(confirmed, "Italy", "l").toString()} days</b>`,
-            `Deaths: <b>${get_current(deaths, "Italy").toString()}</b>,
-            doubles every <b>${get_current(deaths, "Italy", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Italy") / get_current(confirmed, "Italy") * 100 * 10) / 10} %</b>`,
-            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Italy"), 7)[movingAvg(country_diff(confirmed, "Italy"), 7).length - 1] / movingAvg(country_diff(confirmed, "Italy"), 7)[movingAvg(country_diff(confirmed, "Italy"), 7).length - 5] * 10) / 10} </b>`
-        ],
-        cb: context => {
-            const cd = country_data_with_options({
-                data: confirmed,
-                country: "Italy",
-                min: 100,
-                doubling_rate: "l"
-            });
-
-            const cdiff = movingAvg(country_diff(confirmed, "Italy"), 7);
-
-            boxBarDraw(
-                day.slice(0, cd.length),
-                [
-                    {
-                        label: "Infections",
-                        data: movingAvg(country_diff(confirmed, "Italy"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 165, b: 0 }
-                    },
-                    {
-                        label: "Deaths",
-                        data: movingAvg(country_diff(deaths, "Italy"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 0, b: 0 }
-                    }
-                ],
-                ["y1", "y2"],
-                context
-            );
-        }
+        title: countries[1],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[1]
     });
     setCBox({
         boxId: "box3",
-        title: "Spain",
-        elements: [
-            `Infections: <b>${get_current(confirmed, "Spain").toString()}</b>,
-            doubles every <b>${get_current(confirmed, "Spain", "l").toString()} days</b>`,
-            `Deaths: <b>${get_current(deaths, "Spain").toString()}</b>,
-            doubles every <b>${get_current(deaths, "Spain", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Spain") / get_current(confirmed, "Spain") * 100 * 10) / 10} %</b>`,
-            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Spain"), 7)[movingAvg(country_diff(confirmed, "Spain"), 7).length - 1] / movingAvg(country_diff(confirmed, "Spain"), 7)[movingAvg(country_diff(confirmed, "Spain"), 7).length - 5] * 10) / 10} </b>`
-        ],
-        cb: context => {
-            const cd = country_data_with_options({
-                data: confirmed,
-                country: "Spain",
-                min: 100,
-                doubling_rate: "l"
-            });
-
-            const cdiff = movingAvg(country_diff(confirmed, "Spain"), 7);
-
-            boxBarDraw(
-                day.slice(0, cd.length),
-                [
-                    {
-                        label: "Infections",
-                        data: movingAvg(country_diff(confirmed, "Spain"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 165, b: 0 }
-                    },
-                    {
-                        label: "Deaths",
-                        data: movingAvg(country_diff(deaths, "Spain"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 0, b: 0 }
-                    }
-                ],
-                ["y1", "y2"],
-                context
-            );
-        }
+        title: countries[2],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[2]
     });
     setCBox({
         boxId: "box4",
-        title: "Germany",
-        elements: [
-            `Infections: <b>${get_current(confirmed, "Germany").toString()}</b>,
-            doubles every <b>${get_current(confirmed, "Germany", "l").toString()} days</b>`,
-            `Deaths: <b>${get_current(deaths, "Germany").toString()}</b>,
-            doubles every <b>${get_current(deaths, "Germany", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Germany") / get_current(confirmed, "Germany") * 100 * 10) / 10} %</b>`,
-            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Germany"), 7)[movingAvg(country_diff(confirmed, "Germany"), 7).length - 1] / movingAvg(country_diff(confirmed, "Germany"), 7)[movingAvg(country_diff(confirmed, "Germany"), 7).length - 5] * 10) / 10} </b>`
-        ],
-        cb: context => {
-            const cd = country_data_with_options({
-                data: confirmed,
-                country: "Germany",
-                min: 100,
-                doubling_rate: "l"
-            });
-
-            const cdiff = movingAvg(country_diff(confirmed, "Germany"), 7);
-
-            boxBarDraw(
-                day.slice(0, cd.length),
-                [
-                    {
-                        label: "Infections",
-                        data: movingAvg(country_diff(confirmed, "Germany"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 165, b: 0 }
-                    },
-                    {
-                        label: "Deaths",
-                        data: movingAvg(country_diff(deaths, "Germany"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 0, b: 0 }
-                    }
-                ],
-                ["y1", "y2"],
-                context
-            );
-        }
+        title: countries[3],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[3]
     });
     setCBox({
         boxId: "box5",
-        title: "France",
-        elements: [
-            `Infections: <b>${get_current(confirmed, "France").toString()}</b>,
-            doubles every <b>${get_current(confirmed, "France", "l").toString()} days</b>`,
-            `Deaths: <b>${get_current(deaths, "France").toString()}</b>,
-            doubles every <b>${get_current(deaths, "France", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "France") / get_current(confirmed, "France") * 100 * 10) / 10} %</b>`,
-            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "France"), 7)[movingAvg(country_diff(confirmed, "France"), 7).length - 1] / movingAvg(country_diff(confirmed, "France"), 7)[movingAvg(country_diff(confirmed, "France"), 7).length - 5] * 10) / 10} </b>`
-        ],
-        cb: context => {
-            const cd = country_data_with_options({
-                data: confirmed,
-                country: "France",
-                min: 100,
-                doubling_rate: "l"
-            });
-
-            const cdiff = movingAvg(country_diff(confirmed, "France"), 7);
-
-            boxBarDraw(
-                day.slice(0, cd.length),
-                [
-                    {
-                        label: "Infections",
-                        data: movingAvg(country_diff(confirmed, "France"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 165, b: 0 }
-                    },
-                    {
-                        label: "Deaths",
-                        data: movingAvg(country_diff(deaths, "France"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 0, b: 0 }
-                    }
-                ],
-                ["y1", "y2"],
-                context
-            );
-        }
+        title: countries[4],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[4]
     });
     setCBox({
         boxId: "box6",
-        title: "United Kingdom",
-        elements: [
-            `Infections: <b>${get_current(confirmed, "United Kingdom").toString()}</b>,
-            doubles every <b>${get_current(confirmed, "United Kingdom", "l").toString()} days</b>`,
-            `Deaths: <b>${get_current(deaths, "United Kingdom").toString()}</b>,
-            doubles every <b>${get_current(deaths, "United Kingdom", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "United Kingdom") / get_current(confirmed, "United Kingdom") * 100 * 10) / 10} %</b>`,
-            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "United Kingdom"), 7)[movingAvg(country_diff(confirmed, "United Kingdom"), 7).length - 1] / movingAvg(country_diff(confirmed, "United Kingdom"), 7)[movingAvg(country_diff(confirmed, "United Kingdom"), 7).length - 5] * 10) / 10} </b>`
-        ],
-        cb: context => {
-            const cd = country_data_with_options({
-                data: confirmed,
-                country: "United Kingdom",
-                min: 100,
-                doubling_rate: "l"
-            });
-
-            const cdiff = movingAvg(country_diff(confirmed, "United Kingdom"), 7);
-
-            boxBarDraw(
-                day.slice(0, cd.length),
-                [
-                    {
-                        label: "Infections",
-                        data: movingAvg(country_diff(confirmed, "United Kingdom"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 165, b: 0 }
-                    },
-                    {
-                        label: "Deaths",
-                        data: movingAvg(country_diff(deaths, "United Kingdom"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 0, b: 0 }
-                    }
-                ],
-                ["y1", "y2"],
-                context
-            );
-        }
+        title: countries[5],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[5]
     });
 
     setCBox({
         boxId: "box7",
-        title: "Japan",
-        elements: [
-            `Infections: <b>${get_current(confirmed, "Japan").toString()}</b>,
-            doubles every <b>${get_current(confirmed, "Japan", "l").toString()} days</b>`,
-            `Deaths: <b>${get_current(deaths, "Japan").toString()}</b>,
-            doubles every <b>${get_current(deaths, "Japan", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Japan") / get_current(confirmed, "Japan") * 100 * 10) / 10} %</b>`,
-            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Japan"), 7)[movingAvg(country_diff(confirmed, "Japan"), 7).length - 1] / movingAvg(country_diff(confirmed, "Japan"), 7)[movingAvg(country_diff(confirmed, "Japan"), 7).length - 5] * 10) / 10} </b>`
-        ],
-        cb: context => {
-            const cd = country_data_with_options({
-                data: confirmed,
-                country: "Japan",
-                min: 100,
-                doubling_rate: "l"
-            });
-
-            const cdiff = movingAvg(country_diff(confirmed, "Japan"), 7);
-
-            boxBarDraw(
-                day.slice(0, cd.length),
-                [
-                    {
-                        label: "Infections",
-                        data: movingAvg(country_diff(confirmed, "Japan"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 165, b: 0 }
-                    },
-                    {
-                        label: "Deaths",
-                        data: movingAvg(country_diff(deaths, "Japan"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 0, b: 0 }
-                    }
-                ],
-                ["y1", "y2"],
-                context
-            );
-        }
+        title: countries[6],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[6]
     });
 
     setCBox({
         boxId: "box8",
-        title: "Singapore",
-        elements: [
-            `Infections: <b>${get_current(confirmed, "Singapore").toString()}</b>,
-            doubles every <b>${get_current(confirmed, "Singapore", "l").toString()} days</b>`,
-            `Deaths: <b>${get_current(deaths, "Singapore").toString()}</b>,
-            doubles every <b>${get_current(deaths, "Singapore", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Singapore") / get_current(confirmed, "Singapore") * 100 * 10) / 10} %</b>`,
-            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Singapore"), 7)[movingAvg(country_diff(confirmed, "Singapore"), 7).length - 1] / movingAvg(country_diff(confirmed, "Singapore"), 7)[movingAvg(country_diff(confirmed, "Singapore"), 7).length - 5] * 10) / 10} </b>`
-        ],
-        cb: context => {
-            const cd = country_data_with_options({
-                data: confirmed,
-                country: "Singapore",
-                min: 100,
-                doubling_rate: "l"
-            });
-
-            const cdiff = movingAvg(country_diff(confirmed, "Singapore"), 7);
-
-            boxBarDraw(
-                day.slice(0, cd.length),
-                [
-                    {
-                        label: "Infections",
-                        data: movingAvg(country_diff(confirmed, "Singapore"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 165, b: 0 }
-                    },
-                    {
-                        label: "Deaths",
-                        data: country_diff(deaths, "Singapore").slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 0, b: 0 }
-                    }
-                ],
-                ["y1", "y2"],
-                context
-            );
-        }
+        title: countries[7],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[7]
     });
 
     setCBox({
         boxId: "box9",
-        title: "Austria",
-        elements: [
-            `Infections: <b>${get_current(confirmed, "Austria").toString()}</b>,
-            doubles every <b>${get_current(confirmed, "Austria", "l").toString()} days</b>`,
-            `Deaths: <b>${get_current(deaths, "Austria").toString()}</b>,
-            doubles every <b>${get_current(deaths, "Austria", "l").toString()} days</b>`,
-            `Mortality rate: <b>${Math.round(get_current(deaths, "Austria") / get_current(confirmed, "Austria") * 100 * 10) / 10} %</b>`,
-            `Reproduction Rate: <b>${Math.round(movingAvg(country_diff(confirmed, "Austria"), 7)[movingAvg(country_diff(confirmed, "Austria"), 7).length - 1] / movingAvg(country_diff(confirmed, "Austria"), 7)[movingAvg(country_diff(confirmed, "Austria"), 7).length - 5] * 10) / 10} </b>`
-        ],
-        cb: context => {
-            const cd = country_data_with_options({
-                data: confirmed,
-                country: "Austria",
-                min: 100,
-                doubling_rate: "l"
-            });
+        title: countries[8],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[8]
+    });
 
-            const cdiff = movingAvg(country_diff(confirmed, "Austria"), 7);
+    setCBox({
+        boxId: "box10",
+        title: countries[9],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[9]
+    });
 
-            boxBarDraw(
-                day.slice(0, cd.length),
-                [
-                    {
-                        label: "Infections",
-                        data: movingAvg(country_diff(confirmed, "Austria"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 165, b: 0 }
-                    },
-                    {
-                        label: "Deaths",
-                        data: movingAvg(country_diff(deaths, "Austria"), 7).slice(cdiff.length - cd.length),
-                        color: { r: 255, g: 0, b: 0 }
-                    }
-                ],
-                ["y1", "y2"],
-                context
-            );
-        }
+    setCBox({
+        boxId: "box11",
+        title: countries[10],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[10]
+    });
+
+    setCBox({
+        boxId: "box12",
+        title: countries[11],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[11]
+    });
+
+    setCBox({
+        boxId: "box13",
+        title: countries[12],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[12]
+    });
+
+    setCBox({
+        boxId: "box14",
+        title: countries[13],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[13]
+    });
+
+    setCBox({
+        boxId: "box15",
+        title: countries[14],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[14]
+    });
+
+    setCBox({
+        boxId: "box16",
+        title: countries[15],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[15]
+    });
+
+    setCBox({
+        boxId: "box17",
+        title: countries[16],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[16]
+    });
+
+    setCBox({
+        boxId: "box18",
+        title: countries[17],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[17]
+    });
+
+    setCBox({
+        boxId: "box19",
+        title: countries[18],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[18]
+    });
+
+    setCBox({
+        boxId: "box20",
+        title: countries[19],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[19]
+    });
+
+    setCBox({
+        boxId: "box21",
+        title: countries[20],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[20]
+    });
+
+    setCBox({
+        boxId: "box22",
+        title: countries[21],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[21]
+    });
+
+    setCBox({
+        boxId: "box23",
+        title: countries[22],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[22]
+    });
+
+    setCBox({
+        boxId: "box24",
+        title: countries[23],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[23]
+    });
+
+    setCBox({
+        boxId: "box25",
+        title: countries[24],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[24]
+    });
+
+    setCBox({
+        boxId: "box26",
+        title: countries[25],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[25]
+    });
+
+    setCBox({
+        boxId: "box27",
+        title: countries[26],
+        dates,
+        data1: confirmed,
+        data2: deaths,
+        country: countries[26]
     });
 
     setBox1({
-        boxId: "box10",
+        boxId: "box28",
         title: "Death data comparison",
         elements: [],
         cb: context => {
@@ -951,35 +874,45 @@ function run(dates, confirmed, deaths, recovered) {
         }
     });
 
-    draw_bar(dates, [
+    const cd = country_data_with_options({
+        data: confirmed,
+        country: "Germany",
+        min: 100,
+        doubling_rate: "l"
+    });
+
+    const cdiff = movingAvg(country_diff(confirmed, "Germany"), 7);
+
+    draw_bar(dates.slice(cdiff.length - cd.length + 1), [
         {
             label: "Germany new incidents avg of 7 days",
-            data: movingAvg(country_diff(confirmed, "Germany"), 7),
+            data: movingAvg(country_diff(confirmed, "Germany"), 7).slice(cdiff.length - cd.length + 1),
             color: { r: 0, g: 100, b: 100 }
         }
     ],
         //"linear",
         ctx1);
 
-    /*draw_bar(dates.slice(30), [
+    draw_bar(dates.slice(cdiff.length - cd.length + 1), [
         {
-            label: "Germany new deaths avg of 7 days",
-            data: movingAvg(country_diff(deaths, "Germany").slice(30), 7),
-            color: { r: 255, g: 0, b: 0 }
-        }
-    ],
-        //"linear",
-        ctx2);*/
-
-    draw_bar(dates, [
-        {
-            label: "Germany new incidents",
-            data: country_diff(deaths, "Germany"),
+            label: "Germany New Incidents",
+            data: country_diff(confirmed, "Germany").slice(cdiff.length - cd.length + 1),
             color: { r: 255, g: 0, b: 0 }
         }
     ],
         //"linear",
         ctx2);
+
+    draw(dates.slice(cdiff.length - cd.length), [
+        {
+            label: "Germany R (RKI 4/4 on 7 day avg)",
+            data: calcR(confirmed, "Germany", 7, 4).slice(cdiff.length - cd.length),
+            color: { r: 255, g: 0, b: 0 }
+        }
+    ],
+        "linear",
+        ctx3);
+
 
     /*draw(
         dates.slice(31),
