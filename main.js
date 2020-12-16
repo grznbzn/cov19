@@ -51,7 +51,7 @@ function setCBox({ boxId, title, dates, data1, data2, country }) {
 
         const cdiff = movingAvg(country_diff(data1, country), 7);
 
-        boxDraw(
+        boxBarDraw(
             //day.slice(0, cd.length),
             dates.slice(cdiff.length - cd.length + 1),
             [
