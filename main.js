@@ -110,7 +110,8 @@ const day = ["day 1", "day 2", "day 3", "day 4", "day 5", "day 6", "day 7", "day
     "day 40", "day 41", "day 42", "day 43", "day 44", "day 45", "day 46", "day 47", "day 48", "day 49", "day 50", "day 51", "day 52",
     "day 53", "day 54", "day 55", "day 56", "day 57", "day 58", "day 59", "day 60", "day 61", "day 62", "day 63", "day 64", "day 65",
     "day 66", "day 67", "day 68", "day 69", "day 70", "day 71", "day 72", "day 73", "day 74", "day 75", "day 76", "day 77", "day 78",
-    "day 79", "day 80", "day 81", "day 82", "day 83", "day 84", "day 85", "day 86", "day 87", "day 88", "day 89", "day 90", "day 91"];
+    "day 79", "day 80", "day 81", "day 82", "day 83", "day 84", "day 85", "day 86", "day 87", "day 88", "day 89", "day 90", "day 91",
+    "day 92", "day 93", "day 94", "day 95", "day 96", "day 97", "day 98", "day 99", "day 100", "day 101", "day 102", "day 103", "day 104"];
 const countries = [
     "US",
     "Spain",
